@@ -3,79 +3,56 @@ package com.skaggsm.dfu_config;
 import com.mojang.datafixers.kinds.App;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.skaggsm.dfu_config.impl.ObjectBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 public class ConfigBuilder {
+    @NotNull
+    public static <T> Codec<T> buildCodec(Class<T> type) {
+        return buildCodec((Type) type);
+    }
+
     @NotNull
     public static <T> Codec<T> buildCodec(Type type) {
         Codec<T> builtin = builtinCodec(type);
         if (builtin != null)
             return builtin;
 
-        List<RecordCodecBuilder<T, ?>> fields = new ArrayList<>();
-        Map<String, Integer> namesToIndexes = new HashMap<>();
-        var clazz = (Class<?>) type;
-        //if (clazz.isInterface()) {
-        Method[] methods = clazz.getMethods();
-        for (int i = 0, methodsLength = methods.length; i < methodsLength; i++) {
-            Method method = methods[i];
-            var name = method.getName();
-            namesToIndexes.put(name, i);
-            fields.add(buildCodec(method.getGenericReturnType()).fieldOf(name).forGetter(obj -> {
-                try {
-                    return method.invoke(obj);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new IllegalStateException("Codec builder method invoke failed!", e);
-                }
-            }));
-        }
-        /*} else {
-            for (var field : clazz.getFields()) {
-                fields.add(buildCodec(field.getGenericType()).fieldOf(field.getName()).forGetter(obj -> {
-                    try {
-                        return field.get(obj);
-                    } catch (IllegalAccessException e) {
-                        throw new IllegalStateException("Codec builder field get failed!", e);
-                    }
-                }));
-            }
-        }*/
-        //var constructor = clazz.getConstructors()[0];
+        @SuppressWarnings("unchecked")
+        var objectBuilder = ObjectBuilder.buildObjectBuilder((Class<T>) type);
+
+        var fields = objectBuilder.getRecordFields();
 
         return RecordCodecBuilder.create(inst -> {
             try {
                 //noinspection JavaReflectionMemberAccess
-                var group = RecordCodecBuilder.Instance.class.getMethod("group", appArray(fields.size()));
+                var group = RecordCodecBuilder.Instance.class.getMethod("group", appArray(fields.length));
 
-                var product = group.invoke(inst, (Object[]) fields.toArray(RecordCodecBuilder<?, ?>[]::new));
+                var product = group.invoke(inst, (Object[]) fields);
 
                 var apply = findApplyMethod(product.getClass());
 
                 var functionType = apply.getParameterTypes()[1];
 
-                var proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[]{functionType},
-                        (self, method, args) ->
+                var builderFunction = Proxy.newProxyInstance(functionType.getClassLoader(), new Class<?>[]{functionType},
+                        (proxy, method, args) ->
                                 switch (method.getName()) {
-                                    case "apply" -> Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[]{clazz}, (self1, method1, args1) -> {
-                                        var index = namesToIndexes.get(method1.getName());
-                                        if (index != null)
-                                            return args1[index];
-                                        else
-                                            throw new UnsupportedOperationException("Method %s not implemented!".formatted(method));
-                                    });
-                                    case "toString" -> "%s builder".formatted(clazz.getSimpleName());
-                                    default -> throw new UnsupportedOperationException("Method %s not implemented!".formatted(method));
+                                    case "apply" -> objectBuilder.build(args);
+                                    case "toString" -> objectBuilder.toString();
+                                    default -> throw new UnsupportedOperationException("Method \"%s\" not implemented!".formatted(method));
                                 });
 
                 //noinspection unchecked
-                return (App<RecordCodecBuilder.Mu<T>, T>) apply.invoke(product, inst, proxy);
+                return (App<RecordCodecBuilder.Mu<T>, T>) apply.invoke(product, inst, builderFunction);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalArgumentException("Failed to create Codec for object!", e);
+                throw new IllegalArgumentException("Failed to create Codec for \"%s\"!".formatted(type), e);
             }
         });
     }
