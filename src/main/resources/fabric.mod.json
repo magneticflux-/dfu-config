@@ -19,8 +19,7 @@
     "dfu-config.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.0",
-    "fabric": "*"
+    "fabricloader": ">=0.11.0"
   },
   "suggests": {
   }
