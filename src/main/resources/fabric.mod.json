@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "dfu-config",
+  "version": "${version}",
+  "name": "DFU Config",
+  "description": "A Fabric mod to make cutting down trees easier and more realistic.",
+  "authors": [
+    "magneticflux-",
+    "ft-l"
+  ],
+  "contact": {
+    "homepage": "https://github.com/magneticflux-/dfu-config",
+    "sources": "https://github.com/magneticflux-/dfu-config"
+  },
+  "license": "LGPL-3.0-or-later",
+  "environment": "*",
+  "entrypoints": {},
+  "mixins": [
+    "dfu-config.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.11.0",
+    "fabric": "*"
+  },
+  "suggests": {
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.skaggsm.dfu_config.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "LeavesBlockMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
