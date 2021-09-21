@@ -8,7 +8,7 @@ import java.util.List;
 interface TestConfig {
     String myString();
 
-    List<Integer> myList();
+    List<String> myList();
 
     default String myStringUpperCase() {
         return myString().toUpperCase();
@@ -26,8 +26,8 @@ public class Example {
             }
 
             @Override
-            public List<Integer> myList() {
-                return Arrays.asList(1, 2, 3);
+            public List<String> myList() {
+                return Arrays.asList("1", "2", "3");
             }
         };
         System.out.printf("In1: %s%n", in1);

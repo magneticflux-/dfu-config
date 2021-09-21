@@ -4,6 +4,7 @@ import com.mojang.datafixers.kinds.App;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.skaggsm.dfu_config.impl.ObjectBuilder;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,23 +15,32 @@ import java.util.Map;
 
 
 public class ConfigBuilder {
+    private final static Map<Type, Codec<?>> CODEC_CACHE = new Object2ObjectOpenHashMap<>();
+
     @NotNull
     public static <T> Codec<T> buildCodec(Class<T> type) {
         return buildCodec((Type) type);
     }
 
+    @SuppressWarnings("unchecked")
     @NotNull
     public static <T> Codec<T> buildCodec(Type type) {
+        var cached = (Codec<T>) CODEC_CACHE.get(type);
+        if (cached != null)
+            return cached;
+
         Codec<T> builtin = builtinCodec(type);
-        if (builtin != null)
+        if (builtin != null) {
+            CODEC_CACHE.put(type, builtin);
             return builtin;
+        }
 
         @SuppressWarnings("unchecked")
         var objectBuilder = ObjectBuilder.buildObjectBuilder((Class<T>) type);
 
         var fields = objectBuilder.getRecordFields();
 
-        return RecordCodecBuilder.create(inst -> {
+        var codec = RecordCodecBuilder.<T>create(inst -> {
             try {
                 //noinspection JavaReflectionMemberAccess
                 var group = RecordCodecBuilder.Instance.class.getMethod("group", appArray(fields.length));
@@ -49,12 +59,13 @@ public class ConfigBuilder {
                                     default -> throw new UnsupportedOperationException("Method \"%s\" not implemented!".formatted(method));
                                 });
 
-                //noinspection unchecked
                 return (App<RecordCodecBuilder.Mu<T>, T>) apply.invoke(product, inst, builderFunction);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 throw new IllegalArgumentException("Failed to create Codec for \"%s\"!".formatted(type), e);
             }
         });
+        CODEC_CACHE.put(type, codec);
+        return codec;
     }
 
     private static Method findApplyMethod(Class<?> clazz) {
