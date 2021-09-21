@@ -1,4 +1,4 @@
-package com.skaggsm.dfu_config.impl.iface;
+package com.skaggsm.dfu_config.impl;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
@@ -9,7 +9,7 @@ import java.util.function.Function;
  *
  * @param <T> the type of object to retrieve from
  */
-record MethodGetter<T>(MethodHandle handle) implements Function<T, Object> {
+public record MethodGetter<T>(MethodHandle handle) implements Function<T, Object> {
     @Override
     public Object apply(T t) {
         try {
