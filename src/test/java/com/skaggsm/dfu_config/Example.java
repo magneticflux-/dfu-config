@@ -19,14 +19,15 @@ interface TestConfig1 {
 record TestConfig2(int myInt, String myString, List<Byte> myBytes) {
 }
 
-@SuppressWarnings("ClassCanBeRecord")
 class TestConfig3 {
     public final String myString;
     public final List<String> myList;
+    public final transient String myStringUppercase;
 
     public TestConfig3(String myString, List<String> myList) {
         this.myString = myString;
         this.myList = Collections.unmodifiableList(myList);
+        this.myStringUppercase = myString.toUpperCase();
     }
 }
 
