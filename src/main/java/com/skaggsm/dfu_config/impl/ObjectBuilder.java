@@ -1,9 +1,9 @@
 package com.skaggsm.dfu_config.impl;
 
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.skaggsm.dfu_config.impl.clazz.ClassBuilder;
 import com.skaggsm.dfu_config.impl.iface.ProxyInterfaceBuilder;
 import com.skaggsm.dfu_config.impl.record.RecordBuilder;
-import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -20,7 +20,7 @@ public interface ObjectBuilder<T> {
             else if (type.isRecord())
                 return new RecordBuilder<>(type);
             else
-                throw new NotImplementedException("Classes not implemented");
+                return new ClassBuilder<>(type);
         } catch (IllegalAccessException | NoSuchMethodException e) {
             throw new IllegalStateException("Failed to create ObjectBuilder for class \"%s\"!".formatted(type), e);
         }

@@ -3,6 +3,7 @@ package com.skaggsm.dfu_config;
 import com.mojang.serialization.JsonOps;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 interface TestConfig1 {
@@ -16,6 +17,17 @@ interface TestConfig1 {
 }
 
 record TestConfig2(int myInt, String myString, List<Byte> myBytes) {
+}
+
+@SuppressWarnings("ClassCanBeRecord")
+class TestConfig3 {
+    public final String myString;
+    public final List<String> myList;
+
+    public TestConfig3(String myString, List<String> myList) {
+        this.myString = myString;
+        this.myList = Collections.unmodifiableList(myList);
+    }
 }
 
 public class Example {
@@ -37,6 +49,10 @@ public class Example {
         testRoundtrip(
                 TestConfig2.class,
                 new TestConfig2(1, "testing!", Arrays.asList((byte) 1, (byte) 2, (byte) 3))
+        );
+        testRoundtrip(
+                TestConfig3.class,
+                new TestConfig3("testing!", Arrays.asList("a", "b", "c"))
         );
     }
 
