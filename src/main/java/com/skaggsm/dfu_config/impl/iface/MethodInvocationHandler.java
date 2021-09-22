@@ -21,12 +21,8 @@ record MethodInvocationHandler<T>(
             case "toString" -> {
                 return "Fake %s".formatted(iface);
             }
-            case "equals" -> {
-                return false;
-            }
-            case "hashCode" -> {
-                return 0;
-            }
+            case "equals" -> throw new UnsupportedOperationException("\"equals\" not implemented yet!");
+            case "hashCode" -> throw new UnsupportedOperationException("\"hashCode\" not implemented yet!");
             default -> {
                 if (suppliedArgs == null || suppliedArgs.length == 0) {
                     var index = namesToIndexes.getOrDefault(method.getName(), -1);

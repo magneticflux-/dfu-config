@@ -5,6 +5,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.skaggsm.dfu_config.impl.ObjectBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,6 +104,12 @@ public class ConfigBuilder {
             return (Codec<T>) Codec.DOUBLE;
         } else if (clazz == String.class) {
             return (Codec<T>) Codec.STRING;
+        } else if (clazz == Identifier.class) {
+            return (Codec<T>) Identifier.CODEC;
+        } else if (clazz == Item.class) {
+            return (Codec<T>) Registry.ITEM;
+        } else if (clazz == Block.class) {
+            return (Codec<T>) Registry.BLOCK;
         } else if (clazz instanceof ParameterizedType) {
             var raw = (Class<?>) ((ParameterizedType) clazz).getRawType();
             var typeArgs = ((ParameterizedType) clazz).getActualTypeArguments();

@@ -1,6 +1,13 @@
 package com.skaggsm.dfu_config;
 
 import com.mojang.serialization.JsonOps;
+import net.minecraft.Bootstrap;
+import net.minecraft.SharedConstants;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
+import net.minecraft.util.Identifier;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +38,9 @@ class TestConfig3 {
     }
 }
 
+record MinecraftTestConfig1(Identifier genericIdent, Item item, Block block) {
+}
+
 public class Example {
     public static void main(String[] args) {
         testRoundtrip(
@@ -47,13 +57,22 @@ public class Example {
                     }
                 }
         );
+
         testRoundtrip(
                 TestConfig2.class,
                 new TestConfig2(1, "testing!", Arrays.asList((byte) 1, (byte) 2, (byte) 3))
         );
+
         testRoundtrip(
                 TestConfig3.class,
                 new TestConfig3("testing!", Arrays.asList("a", "b", "c"))
+        );
+
+        SharedConstants.createGameVersion();
+        Bootstrap.initialize();
+        testRoundtrip(
+                MinecraftTestConfig1.class,
+                new MinecraftTestConfig1(Identifier.tryParse("my_mod:test"), Items.WOODEN_AXE, Blocks.COAL_ORE)
         );
     }
 
